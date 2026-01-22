@@ -562,6 +562,133 @@
             }
         }
 
+        /* Settings Button */
+        .settings-btn-container {
+            margin-top: 25px;
+            text-align: center;
+            animation: slideUp 0.6s ease-out 0.7s both;
+        }
+
+        .settings-btn {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 12px 24px;
+            background: var(--white);
+            color: var(--navy-light);
+            border: 2px solid var(--cream-dark);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-btn:hover {
+            border-color: var(--navy-light);
+            color: var(--navy);
+            transform: translateY(-1px);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 35, 126, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(26, 35, 126, 0.3);
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .modal-header {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-subtitle {
+            color: var(--navy-light);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-btn.danger {
+            background: linear-gradient(135deg, var(--lose-red) 0%, #FF6E40 100%);
+            color: var(--white);
+        }
+
+        .modal-btn.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 82, 82, 0.4);
+        }
+
+        .modal-btn.secondary {
+            background: var(--cream);
+            color: var(--navy);
+            border: 2px solid var(--cream-dark);
+        }
+
+        .modal-btn.secondary:hover {
+            background: var(--cream-dark);
+        }
+
+        .modal-btn:active {
+            transform: scale(0.98);
+        }
+
+        .modal-divider {
+            height: 1px;
+            background: var(--cream-dark);
+            margin: 20px 0;
+        }
+
         /* Responsive */
         @media (max-width: 400px) {
             .balance-amount {
@@ -664,6 +791,49 @@
             <div class="chart-header">📊 Last 7 Days</div>
             <div class="chart-container">
                 <div class="chart-bars" id="chartBars"></div>
+            </div>
+        </div>
+
+        <!-- Settings Button -->
+        <div class="settings-btn-container">
+            <button class="settings-btn" onclick="openSettings()">
+                ⚙️ Admin Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal" onclick="closeSettings(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                ⚙️ Admin Settings
+            </div>
+            <div class="modal-subtitle">
+                Manage balance and activity data
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn danger" onclick="resetBalance()">
+                    🔄 Reset Balance to 0
+                </button>
+                <button class="modal-btn danger" onclick="clearActivity()">
+                    🗑️ Clear Activity History
+                </button>
+                <button class="modal-btn danger" onclick="clearChart()">
+                    📊 Clear Chart Data
+                </button>
+
+                <div class="modal-divider"></div>
+
+                <button class="modal-btn danger" onclick="resetEverything()">
+                    ⚠️ Reset Everything
+                </button>
+
+                <div class="modal-divider"></div>
+
+                <button class="modal-btn secondary" onclick="closeSettings()">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
@@ -915,6 +1085,68 @@
         window.addEventListener('load', () => {
             loadData();
         });
+
+        // Settings Modal Functions
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings(event) {
+            if (!event || event.target.id === 'settingsModal') {
+                document.getElementById('settingsModal').classList.remove('active');
+            }
+        }
+
+        // Admin Reset Functions
+        function resetBalance() {
+            if (confirm('Are you sure you want to reset the balance to 0? This cannot be undone.')) {
+                data.balance = 0;
+                saveData();
+                updateDisplay();
+                alert('Balance reset to 0!');
+                closeSettings();
+            }
+        }
+
+        function clearActivity() {
+            if (confirm('Are you sure you want to clear all activity history? This cannot be undone.')) {
+                data.activities = [];
+                saveData();
+                renderActivities();
+                alert('Activity history cleared!');
+                closeSettings();
+            }
+        }
+
+        function clearChart() {
+            if (confirm('Are you sure you want to clear all chart data? This cannot be undone.')) {
+                data.dailyData = {};
+                initializeChartData();
+                saveData();
+                renderChart();
+                alert('Chart data cleared!');
+                closeSettings();
+            }
+        }
+
+        function resetEverything() {
+            if (confirm('⚠️ WARNING: This will reset EVERYTHING (balance, activity, and chart data). Are you absolutely sure?')) {
+                if (confirm('This is your last chance! Reset everything?')) {
+                    data = {
+                        balance: 0,
+                        activities: [],
+                        dailyData: {}
+                    };
+                    initializeChartData();
+                    saveData();
+                    updateDisplay();
+                    renderActivities();
+                    renderChart();
+                    alert('Everything has been reset!');
+                    closeSettings();
+                }
+            }
+        }
     </script>
 </body>
 </html>
