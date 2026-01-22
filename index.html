@@ -689,6 +689,111 @@
             margin: 20px 0;
         }
 
+        /* Manage Actions Modal */
+        .actions-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .action-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--cream);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .action-item-info {
+            flex: 1;
+        }
+
+        .action-item-label {
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 2px;
+        }
+
+        .action-item-details {
+            font-size: 0.85rem;
+            color: var(--navy-light);
+        }
+
+        .action-item-delete {
+            background: var(--lose-red);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-item-delete:hover {
+            background: #ff1744;
+        }
+
+        .add-action-form {
+            display: grid;
+            gap: 10px;
+            background: var(--cream);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .form-input {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            padding: 10px 12px;
+            border: 2px solid var(--cream-dark);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--navy);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .form-select {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            padding: 10px 12px;
+            border: 2px solid var(--cream-dark);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--navy);
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: var(--navy);
+            font-weight: 700;
+        }
+
+        .modal-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 184, 0, 0.4);
+        }
+
         /* Responsive */
         @media (max-width: 400px) {
             .balance-amount {
@@ -725,19 +830,8 @@
                     <span class="action-icon earn">+</span>
                     Earn Minutes
                 </div>
-                <div class="action-buttons">
-                    <button class="action-btn earn" onclick="addMinutes(15, 'Picked up room')">
-                        🧹 Clean Room<br>+15 min
-                    </button>
-                    <button class="action-btn earn" onclick="addMinutes(10, 'Took out trash')">
-                        🗑️ Trash<br>+10 min
-                    </button>
-                    <button class="action-btn earn" onclick="addMinutes(20, 'Obeyed promptly')">
-                        ✅ Obeyed<br>+20 min
-                    </button>
-                    <button class="action-btn earn" onclick="addMinutes(15, 'Was kind')">
-                        💛 Kindness<br>+15 min
-                    </button>
+                <div class="action-buttons" id="earnButtons">
+                    <!-- Dynamically rendered -->
                 </div>
             </div>
 
@@ -747,19 +841,8 @@
                     <span class="action-icon lose">−</span>
                     Lost Minutes
                 </div>
-                <div class="action-buttons">
-                    <button class="action-btn lose" onclick="subtractMinutes(10, 'Potty language')">
-                        🚫 Bad Words<br>-10 min
-                    </button>
-                    <button class="action-btn lose" onclick="subtractMinutes(15, 'Fought with sibling')">
-                        😠 Fighting<br>-15 min
-                    </button>
-                    <button class="action-btn lose" onclick="subtractMinutes(20, 'Disobeyed')">
-                        ⛔ Disobeyed<br>-20 min
-                    </button>
-                    <button class="action-btn lose" onclick="subtractMinutes(5, 'Other')">
-                        ⚠️ Other<br>-5 min
-                    </button>
+                <div class="action-buttons" id="loseButtons">
+                    <!-- Dynamically rendered -->
                 </div>
             </div>
         </div>
@@ -813,6 +896,12 @@
             </div>
 
             <div class="modal-actions">
+                <button class="modal-btn primary" onclick="openManageActions()">
+                    ✏️ Manage Earn/Lose Actions
+                </button>
+
+                <div class="modal-divider"></div>
+
                 <button class="modal-btn danger" onclick="resetBalance()">
                     🔄 Reset Balance to 0
                 </button>
@@ -838,12 +927,66 @@
         </div>
     </div>
 
+    <!-- Manage Actions Modal -->
+    <div class="modal-overlay" id="manageActionsModal" onclick="closeManageActions(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                ✏️ Manage Actions
+            </div>
+            <div class="modal-subtitle">
+                Add, edit, or remove earn/lose buttons
+            </div>
+
+            <div class="add-action-form">
+                <input type="text" id="actionEmoji" class="form-input" placeholder="Emoji (e.g., 🧹)" maxlength="4">
+                <input type="text" id="actionLabel" class="form-input" placeholder="Label (e.g., Clean Room)">
+                <div class="form-row">
+                    <input type="number" id="actionMinutes" class="form-input" placeholder="Minutes" min="1">
+                    <select id="actionType" class="form-select">
+                        <option value="earn">Earn (Green)</option>
+                        <option value="lose">Lose (Red)</option>
+                    </select>
+                </div>
+                <button class="modal-btn primary" onclick="addCustomAction()">
+                    + Add Action
+                </button>
+            </div>
+
+            <div class="modal-subtitle">Current Actions</div>
+            <div class="actions-list" id="actionsList"></div>
+
+            <button class="modal-btn secondary" onclick="closeManageActions()">
+                Done
+            </button>
+        </div>
+    </div>
+
     <script>
         // Data structure
         let data = {
             balance: 0,
             activities: [],
-            dailyData: {}
+            dailyData: {},
+            customActions: {
+                earn: [],
+                lose: []
+            }
+        };
+
+        // Default actions
+        const defaultActions = {
+            earn: [
+                { emoji: '🧹', label: 'Clean Room', minutes: 15 },
+                { emoji: '🗑️', label: 'Trash', minutes: 10 },
+                { emoji: '✅', label: 'Obeyed', minutes: 20 },
+                { emoji: '💛', label: 'Kindness', minutes: 15 }
+            ],
+            lose: [
+                { emoji: '🚫', label: 'Bad Words', minutes: 10 },
+                { emoji: '😠', label: 'Fighting', minutes: 15 },
+                { emoji: '⛔', label: 'Disobeyed', minutes: 20 },
+                { emoji: '⚠️', label: 'Other', minutes: 5 }
+            ]
         };
 
         // Load data from localStorage
@@ -851,13 +994,30 @@
             const saved = localStorage.getItem('screentimeData');
             if (saved) {
                 data = JSON.parse(saved);
+                // Initialize custom actions if they don't exist (for backwards compatibility)
+                if (!data.customActions) {
+                    data.customActions = { earn: [], lose: [] };
+                }
+                // If no custom actions, use defaults
+                if (data.customActions.earn.length === 0) {
+                    data.customActions.earn = [...defaultActions.earn];
+                }
+                if (data.customActions.lose.length === 0) {
+                    data.customActions.lose = [...defaultActions.lose];
+                }
                 updateDisplay();
                 renderActivities();
                 renderChart();
+                renderActionButtons();
             } else {
-                // Initialize chart with empty days
+                // Initialize with defaults
+                data.customActions = {
+                    earn: [...defaultActions.earn],
+                    lose: [...defaultActions.lose]
+                };
                 initializeChartData();
                 renderChart();
+                renderActionButtons();
             }
         }
 
@@ -1135,17 +1295,151 @@
                     data = {
                         balance: 0,
                         activities: [],
-                        dailyData: {}
+                        dailyData: {},
+                        customActions: {
+                            earn: [...defaultActions.earn],
+                            lose: [...defaultActions.lose]
+                        }
                     };
                     initializeChartData();
                     saveData();
                     updateDisplay();
                     renderActivities();
                     renderChart();
+                    renderActionButtons();
                     alert('Everything has been reset!');
                     closeSettings();
                 }
             }
+        }
+
+        // Manage Actions Functions
+        function openManageActions() {
+            closeSettings();
+            document.getElementById('manageActionsModal').classList.add('active');
+            renderActionsList();
+        }
+
+        function closeManageActions(event) {
+            if (!event || event.target.id === 'manageActionsModal') {
+                document.getElementById('manageActionsModal').classList.remove('active');
+                // Clear form
+                document.getElementById('actionEmoji').value = '';
+                document.getElementById('actionLabel').value = '';
+                document.getElementById('actionMinutes').value = '';
+                document.getElementById('actionType').value = 'earn';
+            }
+        }
+
+        function addCustomAction() {
+            const emoji = document.getElementById('actionEmoji').value.trim();
+            const label = document.getElementById('actionLabel').value.trim();
+            const minutes = parseInt(document.getElementById('actionMinutes').value);
+            const type = document.getElementById('actionType').value;
+
+            if (!label) {
+                alert('Please enter a label!');
+                return;
+            }
+
+            if (!minutes || minutes <= 0) {
+                alert('Please enter a valid number of minutes!');
+                return;
+            }
+
+            const newAction = {
+                emoji: emoji || '⭐',
+                label: label,
+                minutes: minutes
+            };
+
+            data.customActions[type].push(newAction);
+            saveData();
+            renderActionButtons();
+            renderActionsList();
+
+            // Clear form
+            document.getElementById('actionEmoji').value = '';
+            document.getElementById('actionLabel').value = '';
+            document.getElementById('actionMinutes').value = '';
+        }
+
+        function deleteCustomAction(type, index) {
+            if (confirm(`Delete "${data.customActions[type][index].label}"?`)) {
+                data.customActions[type].splice(index, 1);
+                saveData();
+                renderActionButtons();
+                renderActionsList();
+            }
+        }
+
+        function renderActionButtons() {
+            // Render earn buttons
+            const earnContainer = document.getElementById('earnButtons');
+            earnContainer.innerHTML = data.customActions.earn.map(action => {
+                return `
+                    <button class="action-btn earn" onclick="addMinutes(${action.minutes}, '${action.label}')">
+                        ${action.emoji} ${action.label}<br>+${action.minutes} min
+                    </button>
+                `;
+            }).join('');
+
+            // Render lose buttons
+            const loseContainer = document.getElementById('loseButtons');
+            loseContainer.innerHTML = data.customActions.lose.map(action => {
+                return `
+                    <button class="action-btn lose" onclick="subtractMinutes(${action.minutes}, '${action.label}')">
+                        ${action.emoji} ${action.label}<br>-${action.minutes} min
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderActionsList() {
+            const list = document.getElementById('actionsList');
+            let html = '';
+
+            // Earn actions
+            if (data.customActions.earn.length > 0) {
+                html += '<div style="font-weight: 600; color: var(--earn-green); margin-bottom: 8px; margin-top: 10px;">✅ Earn Actions</div>';
+                data.customActions.earn.forEach((action, index) => {
+                    html += `
+                        <div class="action-item">
+                            <div class="action-item-info">
+                                <div class="action-item-label">${action.emoji} ${action.label}</div>
+                                <div class="action-item-details">+${action.minutes} minutes</div>
+                            </div>
+                            <button class="action-item-delete" onclick="deleteCustomAction('earn', ${index})">
+                                Delete
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            // Lose actions
+            if (data.customActions.lose.length > 0) {
+                html += '<div style="font-weight: 600; color: var(--lose-red); margin-bottom: 8px; margin-top: 15px;">❌ Lose Actions</div>';
+                data.customActions.lose.forEach((action, index) => {
+                    html += `
+                        <div class="action-item">
+                            <div class="action-item-info">
+                                <div class="action-item-label">${action.emoji} ${action.label}</div>
+                                <div class="action-item-details">-${action.minutes} minutes</div>
+                            </div>
+                            <button class="action-item-delete" onclick="deleteCustomAction('lose', ${index})">
+                                Delete
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            if (data.customActions.earn.length === 0 && data.customActions.lose.length === 0) {
+                html = '<div class="empty-state">No actions yet. Add one above!</div>';
+            }
+
+            list.innerHTML = html;
         }
     </script>
 </body>
