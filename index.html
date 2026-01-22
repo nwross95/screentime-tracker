@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Time Treasure Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #FFB800;
+            --gold-light: #FFD54F;
+            --gold-dark: #FF8F00;
+            --earn-green: #00C853;
+            --earn-green-light: #69F0AE;
+            --lose-red: #FF5252;
+            --lose-red-light: #FF8A80;
+            --navy: #1A237E;
+            --navy-light: #3949AB;
+            --cream: #FFF8E1;
+            --cream-dark: #FFF59D;
+            --white: #FFFFFF;
+            --shadow: rgba(26, 35, 126, 0.15);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--navy);
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--navy-light);
+            font-weight: 500;
+        }
+
+        /* Balance Display */
+        .balance-card {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            border-radius: 28px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px var(--shadow), 0 0 0 8px rgba(255, 184, 0, 0.1);
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            animation: scaleIn 0.6s ease-out 0.2s both;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        .balance-label {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.9rem;
+            color: rgba(26, 35, 126, 0.7);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .balance-amount {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .balance-minutes {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 5px;
+        }
+
+        .coin-icon {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: var(--gold-light);
+            border-radius: 50%;
+            border: 4px solid var(--white);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .coin-icon::after {
+            content: '★';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: var(--gold-dark);
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+            animation: slideUp 0.6s ease-out 0.3s both;
+        }
+
+        .action-section {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .action-header {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-header.earn {
+            color: var(--earn-green);
+        }
+
+        .action-header.lose {
+            color: var(--lose-red);
+        }
+
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .action-icon.earn {
+            background: var(--earn-green-light);
+        }
+
+        .action-icon.lose {
+            background: var(--lose-red-light);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .action-btn {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .action-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .action-btn.earn {
+            background: linear-gradient(135deg, var(--earn-green) 0%, #00E676 100%);
+            color: var(--white);
+        }
+
+        .action-btn.earn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 200, 83, 0.4);
+        }
+
+        .action-btn.lose {
+            background: linear-gradient(135deg, var(--lose-red) 0%, #FF6E40 100%);
+            color: var(--white);
+        }
+
+        .action-btn.lose:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 82, 82, 0.4);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Cash Out Button */
+        .cashout-section {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 25px;
+            animation: slideUp 0.6s ease-out 0.4s both;
+        }
+
+        .cashout-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .cashout-input {
+            flex: 1;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            padding: 14px 18px;
+            border: 3px solid var(--cream-dark);
+            border-radius: 14px;
+            background: var(--cream);
+            color: var(--navy);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .cashout-input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .cashout-btn {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 16px var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cashout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(26, 35, 126, 0.3);
+        }
+
+        .cashout-btn:active {
+            transform: scale(0.98);
+        }
+
+        .cashout-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Activity Log */
+        .activity-section {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 25px;
+            animation: slideUp 0.6s ease-out 0.5s both;
+        }
+
+        .activity-header {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--navy);
+        }
+
+        .activity-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--cream-dark);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-reason {
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 2px;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--navy-light);
+        }
+
+        .activity-amount {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 10px;
+        }
+
+        .activity-amount.earn {
+            color: var(--earn-green);
+            background: var(--earn-green-light);
+        }
+
+        .activity-amount.lose {
+            color: var(--lose-red);
+            background: var(--lose-red-light);
+        }
+
+        .activity-amount.spend {
+            color: var(--navy);
+            background: var(--cream-dark);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--navy-light);
+        }
+
+        /* Chart */
+        .chart-section {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            animation: slideUp 0.6s ease-out 0.6s both;
+        }
+
+        .chart-header {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--navy);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 10px;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 100%;
+            gap: 8px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--gold-dark), var(--gold-light));
+            border-radius: 8px 8px 0 0;
+            min-height: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+            animation: barGrow 0.6s ease-out;
+        }
+
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+
+        .chart-bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--navy-light);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .chart-bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--navy);
+            background: var(--cream-dark);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            50% {
+                transform: rotate(180deg);
+            }
+        }
+
+        @keyframes barGrow {
+            from {
+                transform: scaleY(0);
+            }
+            to {
+                transform: scaleY(1);
+            }
+        }
+
+        @keyframes celebrate {
+            0%, 100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.1) rotate(-5deg);
+            }
+            75% {
+                transform: scale(1.1) rotate(5deg);
+            }
+        }
+
+        .celebrate {
+            animation: celebrate 0.5s ease-in-out;
+        }
+
+        /* Particle effect */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            font-size: 24px;
+            animation: float 1s ease-out forwards;
+            z-index: 1000;
+        }
+
+        @keyframes float {
+            to {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .balance-amount {
+                font-size: 3.5rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⭐ Screen Time Bank ⭐</h1>
+            <p class="subtitle">Earn minutes through great choices!</p>
+        </header>
+
+        <!-- Balance Display -->
+        <div class="balance-card">
+            <div class="balance-label">Your Balance</div>
+            <div class="balance-amount">
+                <span class="coin-icon"></span>
+                <span id="balance">0</span>
+            </div>
+            <div class="balance-minutes">minutes saved</div>
+        </div>
+
+        <!-- Earn Actions -->
+        <div class="actions">
+            <div class="action-section">
+                <div class="action-header earn">
+                    <span class="action-icon earn">+</span>
+                    Earn Minutes
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn earn" onclick="addMinutes(15, 'Picked up room')">
+                        🧹 Clean Room<br>+15 min
+                    </button>
+                    <button class="action-btn earn" onclick="addMinutes(10, 'Took out trash')">
+                        🗑️ Trash<br>+10 min
+                    </button>
+                    <button class="action-btn earn" onclick="addMinutes(20, 'Obeyed promptly')">
+                        ✅ Obeyed<br>+20 min
+                    </button>
+                    <button class="action-btn earn" onclick="addMinutes(15, 'Was kind')">
+                        💛 Kindness<br>+15 min
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lose Actions -->
+            <div class="action-section">
+                <div class="action-header lose">
+                    <span class="action-icon lose">−</span>
+                    Lost Minutes
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn lose" onclick="subtractMinutes(10, 'Potty language')">
+                        🚫 Bad Words<br>-10 min
+                    </button>
+                    <button class="action-btn lose" onclick="subtractMinutes(15, 'Fought with sibling')">
+                        😠 Fighting<br>-15 min
+                    </button>
+                    <button class="action-btn lose" onclick="subtractMinutes(20, 'Disobeyed')">
+                        ⛔ Disobeyed<br>-20 min
+                    </button>
+                    <button class="action-btn lose" onclick="subtractMinutes(5, 'Other')">
+                        ⚠️ Other<br>-5 min
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cash Out -->
+        <div class="cashout-section">
+            <div class="action-header" style="color: var(--navy);">
+                <span class="action-icon" style="background: var(--gold-light);">💰</span>
+                Cash Out Screen Time
+            </div>
+            <div class="cashout-input-group">
+                <input type="number" id="cashoutAmount" class="cashout-input" placeholder="30" min="1">
+            </div>
+            <button class="cashout-btn" onclick="cashOut()">
+                Use Screen Time
+            </button>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="activity-section">
+            <div class="activity-header">📋 Recent Activity</div>
+            <div class="activity-list" id="activityList">
+                <div class="empty-state">No activity yet. Start earning minutes!</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-section">
+            <div class="chart-header">📊 Last 7 Days</div>
+            <div class="chart-container">
+                <div class="chart-bars" id="chartBars"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data structure
+        let data = {
+            balance: 0,
+            activities: [],
+            dailyData: {}
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('screentimeData');
+            if (saved) {
+                data = JSON.parse(saved);
+                updateDisplay();
+                renderActivities();
+                renderChart();
+            } else {
+                // Initialize chart with empty days
+                initializeChartData();
+                renderChart();
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('screentimeData', JSON.stringify(data));
+        }
+
+        // Initialize chart data for last 7 days
+        function initializeChartData() {
+            const today = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateKey = date.toISOString().split('T')[0];
+                if (!data.dailyData[dateKey]) {
+                    data.dailyData[dateKey] = { earned: 0, lost: 0, spent: 0, net: 0 };
+                }
+            }
+        }
+
+        // Update daily data
+        function updateDailyData(amount, type) {
+            const today = new Date().toISOString().split('T')[0];
+            if (!data.dailyData[today]) {
+                data.dailyData[today] = { earned: 0, lost: 0, spent: 0, net: 0 };
+            }
+
+            if (type === 'earn') {
+                data.dailyData[today].earned += amount;
+                data.dailyData[today].net += amount;
+            } else if (type === 'lose') {
+                data.dailyData[today].lost += amount;
+                data.dailyData[today].net -= amount;
+            } else if (type === 'spend') {
+                data.dailyData[today].spent += amount;
+            }
+        }
+
+        // Add minutes
+        function addMinutes(amount, reason) {
+            data.balance += amount;
+            data.activities.unshift({
+                type: 'earn',
+                amount: amount,
+                reason: reason,
+                timestamp: new Date().toISOString()
+            });
+            updateDailyData(amount, 'earn');
+
+            // Keep only last 50 activities
+            if (data.activities.length > 50) {
+                data.activities = data.activities.slice(0, 50);
+            }
+
+            saveData();
+            updateDisplay();
+            renderActivities();
+            renderChart();
+            createParticles('⭐', amount > 15 ? 5 : 3);
+            celebrateBalance();
+        }
+
+        // Subtract minutes
+        function subtractMinutes(amount, reason) {
+            data.balance = Math.max(0, data.balance - amount);
+            data.activities.unshift({
+                type: 'lose',
+                amount: amount,
+                reason: reason,
+                timestamp: new Date().toISOString()
+            });
+            updateDailyData(amount, 'lose');
+
+            if (data.activities.length > 50) {
+                data.activities = data.activities.slice(0, 50);
+            }
+
+            saveData();
+            updateDisplay();
+            renderActivities();
+            renderChart();
+        }
+
+        // Cash out
+        function cashOut() {
+            const input = document.getElementById('cashoutAmount');
+            const amount = parseInt(input.value);
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount!');
+                return;
+            }
+
+            if (amount > data.balance) {
+                alert(`Not enough minutes! You only have ${data.balance} minutes.`);
+                return;
+            }
+
+            data.balance -= amount;
+            data.activities.unshift({
+                type: 'spend',
+                amount: amount,
+                reason: 'Screen time used',
+                timestamp: new Date().toISOString()
+            });
+            updateDailyData(amount, 'spend');
+
+            if (data.activities.length > 50) {
+                data.activities = data.activities.slice(0, 50);
+            }
+
+            saveData();
+            updateDisplay();
+            renderActivities();
+            renderChart();
+            input.value = '';
+            createParticles('🎮', 8);
+
+            alert(`Enjoy your ${amount} minutes of screen time! 🎮`);
+        }
+
+        // Update balance display
+        function updateDisplay() {
+            document.getElementById('balance').textContent = data.balance;
+        }
+
+        // Celebrate balance change
+        function celebrateBalance() {
+            const balanceCard = document.querySelector('.balance-card');
+            balanceCard.classList.add('celebrate');
+            setTimeout(() => {
+                balanceCard.classList.remove('celebrate');
+            }, 500);
+        }
+
+        // Create floating particles
+        function createParticles(emoji, count) {
+            const balanceCard = document.querySelector('.balance-card');
+            const rect = balanceCard.getBoundingClientRect();
+
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = emoji;
+                particle.style.left = (rect.left + Math.random() * rect.width) + 'px';
+                particle.style.top = (rect.top + rect.height / 2) + 'px';
+                document.body.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+        }
+
+        // Render activities
+        function renderActivities() {
+            const list = document.getElementById('activityList');
+
+            if (data.activities.length === 0) {
+                list.innerHTML = '<div class="empty-state">No activity yet. Start earning minutes!</div>';
+                return;
+            }
+
+            list.innerHTML = data.activities.slice(0, 10).map(activity => {
+                const date = new Date(activity.timestamp);
+                const timeStr = date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                const dateStr = date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                let amountClass = activity.type;
+                let amountText = '';
+                if (activity.type === 'earn') {
+                    amountText = `+${activity.amount}`;
+                } else if (activity.type === 'lose') {
+                    amountText = `−${activity.amount}`;
+                } else {
+                    amountText = `−${activity.amount}`;
+                }
+
+                return `
+                    <div class="activity-item">
+                        <div class="activity-info">
+                            <div class="activity-reason">${activity.reason}</div>
+                            <div class="activity-time">${dateStr} at ${timeStr}</div>
+                        </div>
+                        <div class="activity-amount ${amountClass}">${amountText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render chart
+        function renderChart() {
+            initializeChartData();
+            const chartBars = document.getElementById('chartBars');
+            const last7Days = Object.keys(data.dailyData).sort().slice(-7);
+
+            const maxValue = Math.max(...last7Days.map(date =>
+                Math.max(data.dailyData[date].earned, 1)
+            ), 60);
+
+            chartBars.innerHTML = last7Days.map(dateKey => {
+                const dayData = data.dailyData[dateKey];
+                const date = new Date(dateKey);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const height = (dayData.earned / maxValue) * 100;
+
+                return `
+                    <div class="chart-bar" style="height: ${height}%">
+                        ${dayData.earned > 0 ? `<div class="chart-bar-value">${dayData.earned}</div>` : ''}
+                        <div class="chart-bar-label">${dayName}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            loadData();
+        });
+    </script>
+</body>
+</html>
